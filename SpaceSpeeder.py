@@ -3,41 +3,41 @@ import math
 import random  # ランダム生成のために追加
 
 # 定数の定義
-SCREEN_WIDTH = 160
-SCREEN_HEIGHT = 120
+SCREEN_WIDTH = 160  # 画面の幅
+SCREEN_HEIGHT = 120  # 画面の高さ
 PLAY_AREA_TOP = 10  # プレイエリアの上端
 PLAY_AREA_BOTTOM = SCREEN_HEIGHT - 10  # プレイエリアの下端
-PLAYER_RADIUS = 5
-PLAYER_MIN_RADIUS = 2
-PLAYER_INITIAL_SPEED = 2
-PLAYER_MAX_SPEED = 10
-POWER_UP_DURATION = 30  # 1秒間 (30FPS * 1)
-CIRCLE_COUNT = 5
-CIRCLE_RADIUS = 1
-SCORE_INCREMENT = 1000
-TEXT_COLOR_READY = 10
-TEXT_COLOR_USED = 8
-TEXT_COLOR_SCORE = 7
-TEXT_POSITION_SCORE = (5, 110)
-TEXT_POSITION_POWER_UP = (60, 110)
-TEXT_POSITION_BRAKE = (60, 100)
+PLAYER_RADIUS = 5  # プレイヤーの初期半径
+PLAYER_MIN_RADIUS = 2  # プレイヤーの最小半径
+PLAYER_INITIAL_SPEED = 2  # プレイヤーの初期速度
+PLAYER_MAX_SPEED = 10  # プレイヤーの最大速度
+POWER_UP_DURATION = 30  # パワーアップの持続時間 (1秒間: 30FPS * 1)
+CIRCLE_COUNT = 5  # 画面上に表示される円の数
+CIRCLE_RADIUS = 1  # 円の半径
+SCORE_INCREMENT = 1000  # 衝突時のスコア増加量
 
-TITLE_TEXT = "SPACE SPEEDER"
-START_TEXT = "PRESS SPACE OR A TO START"
-QUIT_TEXT = "PRESS Q OR B TO QUIT"
-TITLE_TEXT_COLOR = 7
-START_TEXT_COLOR = TEXT_COLOR_READY
-QUIT_TEXT_COLOR = TEXT_COLOR_USED
-TITLE_TEXT_POSITION = (SCREEN_WIDTH // 2 - 40, SCREEN_HEIGHT // 2 - 20)
-START_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 20)
-QUIT_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 30)
+# テキストの色と位置
+TEXT_COLOR_READY = 10  # 使用可能な状態のテキスト色 (緑)
+TEXT_COLOR_USED = 8  # 使用済み状態のテキスト色 (赤)
+TEXT_COLOR_SCORE = 7  # スコア表示のテキスト色 (白)
+TEXT_POSITION_SCORE = (5, 110)  # スコア表示の位置
+TEXT_POSITION_POWER_UP = (60, 110)  # パワーアップ状態の表示位置
+TEXT_POSITION_BRAKE = (60, 100)  # ブレーキ状態の表示位置
+
+# タイトル画面のテキスト
+TITLE_TEXT = "SPACE SPEEDER"  # ゲームタイトル
+START_TEXT = "PRESS SPACE OR A TO START"  # ゲーム開始の説明
+QUIT_TEXT = "PRESS Q OR B TO QUIT"  # ゲーム終了の説明
+TITLE_TEXT_COLOR = 7  # タイトルテキストの色 (白)
+START_TEXT_COLOR = TEXT_COLOR_READY  # スタートテキストの色 (緑)
+QUIT_TEXT_COLOR = TEXT_COLOR_USED  # 終了テキストの色 (赤)
+TITLE_TEXT_POSITION = (SCREEN_WIDTH // 2 - 40, SCREEN_HEIGHT // 2 - 20)  # タイトルテキストの位置
+START_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 20)  # スタートテキストの位置
+QUIT_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 30)  # 終了テキストの位置
 
 class App:
     def __init__(self):
         pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Space Speeder", fps=30)
-
-        self.selected_timer = 10  # デフォルトのタイマー秒数を初期化
-        self.reset_game()  # 初期化処理
 
         # リソースの読み込み
         pyxel.load("my_resource.pyxres")
@@ -45,27 +45,35 @@ class App:
         # サウンドの設定
         pyxel.sound(0).set("c3e3g3c4", "p", "7", "n", 10)  # 通常衝突音
         pyxel.sound(1).set("f3a3d4f4", "p", "7", "n", 10)  # ボーナス衝突音
+        pyxel.sound(2).set("g2c3e3g3c4e4g4", "t", "6", "n", 30)  # タイトル画面BGM
+        pyxel.sound(3).set("c2e2g2c3e3g3", "p", "7", "n", 20)  # ゲーム画面BGM
+        pyxel.sound(4).set("e3g3b3e4g4b4", "p", "6", "n", 15)  # スコア画面BGM
+        self.selected_timer = 10  # デフォルトのタイマー秒数を初期化
+        self.reset_game()  # 初期化処理
 
         pyxel.run(self.update, self.draw)
 
     def reset_game(self):
         """ゲームのパラメータを初期値にリセット"""
         self.state = "TITLE"  # ゲームの状態をタイトルに戻す
-        self.x = SCREEN_WIDTH // 2
-        self.y = SCREEN_HEIGHT // 2
-        self.r = PLAYER_RADIUS
-        self.score = 0
-        self.speed = PLAYER_INITIAL_SPEED
-        self.deadzone = 2000
-        self.circles = [(random.randint(0, SCREEN_WIDTH - 1), random.randint(PLAY_AREA_TOP, PLAY_AREA_BOTTOM - 1), CIRCLE_RADIUS) for _ in range(CIRCLE_COUNT)]
-        self.power_up_active = False
-        self.power_up_timer = 0
-        self.power_up_used = False
-        self.brake_used = False
-        self.stage = 1
+        self.x = SCREEN_WIDTH // 2  # プレイヤーの初期X座標
+        self.y = SCREEN_HEIGHT // 2  # プレイヤーの初期Y座標
+        self.r = PLAYER_RADIUS  # プレイヤーの初期半径
+        self.score = 0  # スコアの初期化
+        self.speed = PLAYER_INITIAL_SPEED  # プレイヤーの初期速度
+        self.deadzone = 2000  # 入力デッドゾーン
+        self.circles = [(random.randint(0, SCREEN_WIDTH - 1), random.randint(PLAY_AREA_TOP, PLAY_AREA_BOTTOM - 1), CIRCLE_RADIUS) for _ in range(CIRCLE_COUNT)]  # 円の初期配置
+        self.power_up_active = False  # パワーアップの状態
+        self.power_up_timer = 0  # パワーアップの残り時間
+        self.power_up_used = False  # パワーアップの使用状態
+        self.brake_used = False  # ブレーキの使用状態
+        self.stage = 1  # ステージ番号
         self.timer = self.selected_timer * 30  # 選択した秒数をタイマーに設定
-        self.effects = []
-        self.last_collision_time = -10
+        self.effects = []  # 衝突エフェクトのリスト
+        self.last_collision_time = -10  # 最後の衝突時刻
+
+        # タイトル画面BGMを再生
+        pyxel.play(0, 2, loop=True)
 
     def update(self):
         if self.state == "TITLE":
@@ -76,10 +84,16 @@ class App:
             self.update_score()
 
     def update_title(self):
+        # タイトル画面に入ったときにBGMを再生
+        if not pyxel.play_pos(0):  # チャンネル0でBGMが再生されていない場合
+            pyxel.play(0, 2, loop=True)  # タイトル画面BGMをループ再生
+
         # スタートボタン (スペースキーまたはAボタン)
         if pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A):
             self.timer = self.selected_timer * 30  # 選択した秒数をタイマーに設定
             self.state = "GAME"
+            pyxel.stop()  # タイトル画面BGMを停止
+            pyxel.play(0, 3, loop=True)  # ゲーム画面BGMを再生
 
         # 終了ボタン (QキーまたはBボタン)
         if pyxel.btnp(pyxel.KEY_Q) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B):
@@ -98,6 +112,8 @@ class App:
         self.timer -= 1
         if self.timer <= 0:
             self.state = "SCORE"  # スコア画面へ遷移
+            pyxel.stop()  # ゲーム画面BGMを停止
+            pyxel.play(0, 4, loop=True)  # スコア画面BGMを再生
             return
 
         # 衝突判定と削除
@@ -119,11 +135,11 @@ class App:
                     self.score += 500  # ボーナススコア
                     # ボーナスエフェクトを追加
                     self.effects.append({"x": cx, "y": cy, "timer": 15, "bonus": True})
-                    pyxel.play(0, 1)  # ボーナス衝突音
+                    pyxel.play(1, 1)  # ボーナス衝突音をチャンネル1で再生
                 else:
                     # 通常の衝突エフェクトを追加
                     self.effects.append({"x": cx, "y": cy, "timer": 15, "bonus": False})
-                    pyxel.play(0, 0)  # 通常衝突音
+                    pyxel.play(1, 0)  # 通常衝突音をチャンネル1で再生
 
                 self.last_collision_time = current_time  # 衝突時刻を更新
             else:
@@ -183,6 +199,8 @@ class App:
         # タイトル画面に戻るボタン (QキーまたはBボタン)
         if pyxel.btnp(pyxel.KEY_Q) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B):
             self.reset_game()  # パラメータを初期値にリセット
+            pyxel.stop()  # スコア画面BGMを停止
+            pyxel.play(0, 2, loop=True)  # タイトル画面BGMを再生
 
     def check_collision(self, x1, y1, r1, x2, y2, r2):
         distance = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
