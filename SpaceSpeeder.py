@@ -29,19 +29,22 @@ TITLE_TEXT_COLOR = 7
 START_TEXT_COLOR = TEXT_COLOR_READY
 QUIT_TEXT_COLOR = TEXT_COLOR_USED
 TITLE_TEXT_POSITION = (SCREEN_WIDTH // 2 - 40, SCREEN_HEIGHT // 2 - 20)
-START_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2)
-QUIT_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 10)
+START_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 20)
+QUIT_TEXT_POSITION = (SCREEN_WIDTH // 2 - 50, SCREEN_HEIGHT // 2 + 30)
 
 class App:
     def __init__(self):
-        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Space Bomber", fps=30)
+        pyxel.init(SCREEN_WIDTH, SCREEN_HEIGHT, title="Space Speeder", fps=30)
+
+        self.selected_timer = 10  # デフォルトのタイマー秒数を初期化
+        self.reset_game()  # 初期化処理
+
+        # リソースの読み込み
+        pyxel.load("my_resource.pyxres")
 
         # サウンドの設定
         pyxel.sound(0).set("c3e3g3c4", "p", "7", "n", 10)  # 通常衝突音
         pyxel.sound(1).set("f3a3d4f4", "p", "7", "n", 10)  # ボーナス衝突音
-
-        self.selected_timer = 10  # デフォルトのタイマー秒数を初期化
-        self.reset_game()  # 初期化処理
 
         pyxel.run(self.update, self.draw)
 
@@ -133,7 +136,7 @@ class App:
             effect["timer"] -= 1
 
         # Aボタンでパワーアップを発動
-        if pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A) and not self.power_up_used:
+        if (pyxel.btnp(pyxel.KEY_SPACE) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_A)) and not self.power_up_used:
             self.power_up_active = True
             self.power_up_timer = POWER_UP_DURATION
             self.power_up_used = True
@@ -147,7 +150,7 @@ class App:
                 self.r = PLAYER_MIN_RADIUS
 
         # Bボタンでブレーキを発動
-        if pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B) and not self.brake_used:
+        if (pyxel.btnp(pyxel.KEY_Q) or pyxel.btnp(pyxel.GAMEPAD1_BUTTON_B)) and not self.brake_used:
             self.speed = PLAYER_INITIAL_SPEED
             self.brake_used = True
 
@@ -196,11 +199,8 @@ class App:
     def draw_title(self):
         pyxel.cls(0)
 
-        # タイトル文字を横に大きく表示
-        title_x = SCREEN_WIDTH // 2 - 40
-        title_y = SCREEN_HEIGHT // 2 - 40
-        pyxel.text(title_x, title_y, TITLE_TEXT, pyxel.frame_count % 16)
-
+        # タイトル画像を描画
+        pyxel.blt((SCREEN_WIDTH - 80) / 2, 15, 0, 0, 0, 80, 53, 1)
         # スタートと終了ボタンの説明
         pyxel.text(*START_TEXT_POSITION, START_TEXT, START_TEXT_COLOR)
         pyxel.text(*QUIT_TEXT_POSITION, QUIT_TEXT, QUIT_TEXT_COLOR)
